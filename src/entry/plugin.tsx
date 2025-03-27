@@ -409,6 +409,8 @@ export default class BonTalk {
           console.warn("已掛斷 Terminated")
           this.sessionManager.removeSession(as)
           BonTalk.cleanupMedia(audioElement as HTMLMediaElement)
+          this.removeLocalVideo()
+          this.removeRemoteVideo()
           this.triggerOnCallTerminated();
           // console.log("已結束")
           break
@@ -521,37 +523,30 @@ export default class BonTalk {
   }
 
   async setupLocalVideo() {
-    console.log("建立本地視訊")
     try {
      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
      const localVideoElement = document.getElementById(this.localVideoElementId) as HTMLVideoElement;
-     if (localVideoElement) {
-        localVideoElement.srcObject = stream;
-      }
-      console.log(localVideoElement?.srcObject)
-      console.log(navigator.mediaDevices)
+     if (!localVideoElement) return console.error("Local video element not found.")
+      localVideoElement.srcObject = stream;
     } catch (error) {
       console.error("Error accessing local media devices.", error);
     }
   }
 
   removeLocalVideo() {
-    console.log("移除本地視訊")
     const localVideoElement = document.getElementById(this.localVideoElementId) as HTMLVideoElement;
-    if (localVideoElement && localVideoElement.srcObject) {
+    if (!localVideoElement || !localVideoElement.srcObject) return console.error("Local video element not found.");
       const stream = localVideoElement.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach(track => {
+        track.stop()
+      });
       localVideoElement.srcObject = null;
-    }
-    console.log(localVideoElement?.srcObject)
-    console.log(navigator.mediaDevices)
   }
 
   setupRemoteVideo(sessionName: SessionName) {
-    console.log("建立遠端視訊")
     const customSession = this.sessionManager.getSession(sessionName);
     const currentSession = customSession?.session;
-    if (!currentSession || !currentSession.sessionDescriptionHandler) return;
+    if (!currentSession || !currentSession.sessionDescriptionHandler) return console.error("Session not found or sessionDescriptionHandler not found.");
 
     const remoteStream = new MediaStream();
     const peerConnection = (currentSession.sessionDescriptionHandler as unknown as { peerConnection: RTCPeerConnection }).peerConnection;
@@ -569,11 +564,9 @@ export default class BonTalk {
   }
 
   removeRemoteVideo() {
-    console.log("移除遠端視訊")
     const remoteVideoElement = document.getElementById(this.remoteVideoElementId) as HTMLVideoElement;
-    if (remoteVideoElement) {
-      remoteVideoElement.srcObject = null;
-    }
+    if (!remoteVideoElement) return console.error("Remote video element not found.")
+    remoteVideoElement.srcObject = null;
   }
 
   /**
@@ -610,12 +603,9 @@ export default class BonTalk {
   toggleVideoTransport(enable: boolean, sessionName: SessionName) {
     const customSession = this.sessionManager.getSession(sessionName);
     const currentSession = customSession?.session;
-    if (!currentSession) {
-      return;
-    }
-    console.log(currentSession.sessionDescriptionHandler)
+    if (!currentSession) return console.error("Session not found.");
     // @ts-expect-error sip.js types are not up to date
-    currentSession.sessionDescriptionHandler!.peerConnection.getLocalStreams().forEach((stream) => {
+    currentSession.sessionDescriptionHandler?.peerConnection?.getLocalStreams().forEach((stream) => {
       // @ts-expect-error sip.js types are not up to date
       stream.getVideoTracks().forEach((track) => {
         track.enabled = enable;

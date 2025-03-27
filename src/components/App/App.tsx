@@ -50,7 +50,9 @@ export default function App() {
       stopRingBackTone()
       switch (state) {
         case SessionState.Terminated:
-          setView("KEY_PAD")
+          setTimeout(() => {
+            setView("KEY_PAD")
+          }, 1000)
           setCurrentCallingTarget("")
           console.warn("inviter", state)
           break
