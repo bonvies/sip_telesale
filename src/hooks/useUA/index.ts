@@ -39,6 +39,8 @@ export default function useUA() {
             case SessionState.Terminating:
             case SessionState.Terminated:
               stopRingTone()
+              removeLocalVideo()
+              removeRemoteVideo()
               setView("KEY_PAD")
               BonTalk.cleanupMedia(bonTalk?.audioElement)
               break
@@ -71,7 +73,6 @@ export default function useUA() {
     if (!receivedInvitation) return
     try {
       await bonTalk.answerCall(receivedInvitation, "incoming")
-      console.log("已接聽電話")
     } catch (error) {
       console.error(`[${bonTalk.userAgentInstance?.instanceId}] failed to answer call`)
       console.error(error)

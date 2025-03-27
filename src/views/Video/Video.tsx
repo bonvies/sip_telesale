@@ -73,8 +73,7 @@ export default function Video(props: CallingProps) {
     props.onVideoClick(true);
     return () => {
       // 設定視訊流 移除
-      props.onRemoveLocalVideo();
-      props.onRemoveRemoteVideo();
+      props.onVideoClick(false);
     }
   }, []);
 
